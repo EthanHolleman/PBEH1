@@ -1,0 +1,12 @@
+channels:
+  - conda-forge
+  - defaults
+  - bioconda
+dependencies:
+  - perl
+  - bismark==0.20.0
+  - bowtie2==2.2.6
+  - bedtools
+  - samtools
+  - python
+  - pandas

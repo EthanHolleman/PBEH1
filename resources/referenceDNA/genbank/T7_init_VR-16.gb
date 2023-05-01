@@ -1,0 +1,112 @@
+LOCUS       T7_init_VR-16.in        3322 bp    DNA     circular SYN 28-JUL-2021
+DEFINITION  cSEGUID_RTDSb3No5OVuIkSX_XC5eEectp4.
+ACCESSION   zOAUkhTcVg_XgA4JDbO5BAYNm6E
+VERSION     zOAUkhTcVg_XgA4JDbO5BAYNm6E
+KEYWORDS    .
+SOURCE      .
+  ORGANISM  .
+            .
+FEATURES             Location/Qualifiers
+     promoter        complement(514..530)
+                     /label="T3 promoter"
+                     /label="T3\promoter"
+                     /note="/vntifkey=30"
+     promoter        3068..3089
+                     /label="T7 promoter"
+                     /label="T7\promoter"
+                     /note="/vntifkey=30"
+     misc_feature    3085
+                     /label="T7 +1 Site"
+                     /label="T7\+1\Site"
+                     /note="/vntifkey=21"
+     misc            3071..3106
+                     /name="5' homology arm"
+                     /author="Ethan Holleman"
+                     /label="5_prime_HR"
+                     /note="Homology arm of variable region insert taken from
+                     (base 1) positions 15-45 of pFC9"
+                     /pFC9_start="14"
+                     /pFC9_end="44"
+                     /pFC9_seguid="GgwWaQfD9ayC9M7teGIRvtekf94"
+                     /date="07/27/2021"
+     CDS             3107..3121
+                     /note="Anchor sequence for primer binding"
+                     /label="Anchor region"
+     CDS             3122..3321
+                     /name="variable_region"
+                     /gc_skew="0.4"
+                     /gc_content="0.6"
+                     /at_skew="0.0"
+                     /at_content="0.4"
+                     /clustered_nucleotide="G"
+                     /label="Variable region"
+                     /date="28-JUL-2021"
+                     /author="Ethan Holleman"
+     misc            join(3322,1..29)
+                     /name="3' homology arm"
+                     /author="Ethan Holleman"
+                     /label="3_prime_HR"
+                     /note="Homology arm of variable region insert taken from
+                     (base 1) positions 533-563 of pFC9"
+                     /pFC9_start="532"
+                     /pFC9_end="562"
+                     /pFC9_seguid="GgwWaQfD9ayC9M7teGIRvtekf94"
+                     /date="07/27/2021"
+ORIGIN
+        1 aattcgtcgc agtgaccgag gcgaggaggc tatggcagtg gaccaggggg atgagtcggt
+       61 gtgacagtgg tgggggttgt gttggtggtc gcggcgcggg gagagtccgt aggaagtggc
+      121 tgggaggtag ggggaaggcg gcgacagtgg gtattggcgg cggtgggcat tggcagcggg
+      181 taggcatggc ggtggtggac tttggcggcg gtaggcatgg cggcggtggg catggcatgg
+      241 aggcggtggg catggcggcc gcggggcctg tcgctgtccg gagtgactaa gggacgctga
+      301 atgattgctg tgtagaggag ggggcatcag aaggggcagt agcacagtcc gcagccttta
+      361 attttcctgt gacctgcgat ggtcatctgg tttgcctact gtggtggtgg tgctttttta
+      421 ttaaaactgc gcaatgccta cactgccgca ggggctgcag aaatgcgtgg aatccagacc
+      481 tcgagggggg gcccggtacc cagcttttgt tccctttagt gagggttaat tctagagcat
+      541 gcctgcatta atgaatcggc caacgcgcgg ggagaggcgg tttgcgtatt gggcgctctt
+      601 ccgcttcctc gctcactgac tcgctgcgct cggtcgttcg gctgcggcga gcggtatcag
+      661 ctcactcaaa ggcggtaata cggttatcca cagaatcagg ggataacgca ggaaagaaca
+      721 tgtgagcaaa aggccagcaa aaggccagga accgtaaaaa ggccgcgttg ctggcgtttt
+      781 tccataggct cggcccccct gacgagcatc acaaaaatcg acgctcaagt cagaggtggc
+      841 gaaacccgac aggactataa agataccagg cgttcccccc tggaagctcc ctcgtgcgct
+      901 ctcctgttcc gaccctgccg cttaccggat acctgtccgc ctttctccct tcgggaagcg
+      961 tggcgctttc tcaatgctca cgctgtaggt atctcagttc ggtgtaggtc gttcgctcca
+     1021 agctgggctg tgtgcacgaa ccccccgttc agcccgaccg ctgcgcctta tccggtaact
+     1081 atcgtcttga gtccaacccg gtaagacacg acttatcgcc actggcagca gccactggta
+     1141 acaggattag cagagcgagg tatgtaggcg gtgctacaga gttcttgaag tggtggccta
+     1201 actacggcta cactagaagg acagtatttg gtatctgcgc tctgctgaag ccagttacct
+     1261 tcggaaaaag agttggtagc tcttgatccg gcaaacaaac caccgctggt agcggtggtt
+     1321 tttttgtttg caagcagcag attacgcgca gaaaaaaagg atctcaagaa gatcctttga
+     1381 tcttttctac ggggtctgac gctcagtgga acgaaaactc acgttaaggg attttggtca
+     1441 tgagattatc aaaaaggatc ttcacctaga tccttttaaa ttaaaaatga agttttaaat
+     1501 caatctaaag tatatatgag taaacttggt ctgacagtta ccaatgctta atcagtgagg
+     1561 cacctatctc agcgatctgt ctatttcgtt catccatagt tgcctgactg cccgtcgtgt
+     1621 agataactac gatacgggag ggcttaccat ctggccccag tgctgcaatg ataccgcgag
+     1681 acccacgctc accggctcca gatttatcag caataaacca gccagccgga agggccgagc
+     1741 gcagaagtgg tcctgcaact ttatccgcct ccatccagtc tattaattgt tgccgggaag
+     1801 ctagagtaag tagttcgcca gttaatagtt tgcgcaacgt tgttgccatt gctacaggca
+     1861 tcgtggtgtc acgctcgtcg tttggtatgg cttcattcag ctccggttcc caacgatcaa
+     1921 ggcgagttac atgatccccc atgttgtgaa aaaaagcggt tagctccttc ggtcctccga
+     1981 tcgttgtcag aagtaagttg gccgcagtgt tatcactcat gcttatggca gcactgcata
+     2041 attctcttac tgtcatgcca tccgtaagat gcttttctgt gactggtgag tactcaacca
+     2101 agtcattctg agaatagtgt atgcggcgac cgagttgctc ttgcccggcg tcaatacggg
+     2161 ataataccgc gccacatagc agaactttaa aagtgctcat cattggaaaa cgttcttcgg
+     2221 ggcgaaaact ctcaaggatc ttaccgctgt tgagatccag ttcgatgtaa cccactcgtg
+     2281 cacccaactg atcttcagca tcttttactt tcaccagcgt ttctgggtga gcaaaaacag
+     2341 gaaggcaaaa tgccgcaaaa aagggaataa gggcgacacg gaaatgttga atactcatac
+     2401 tcttcctttt tcaatattat tgaagcattt atcagggtta ttgtctcatg agcggataca
+     2461 tatttgaatg tatttagaaa aataaacaaa taggggttcc gcgcacattt ccccgaaaag
+     2521 tgccacctga aattgtaaac gttaatattt tgttaaaatt cgcgttaaat ttttgttaaa
+     2581 tcagctcatt ttttaaccaa taggccgaaa tcggcaaaat cccttataaa tcaaaagaat
+     2641 agaccgagat agggttgagt gttgttccag tttggaacaa gagtccacta ttaaagaacg
+     2701 tggactccaa cgtcaaaggg cgaaaaaccg tctatcaggg cgatggccca ctacgtgaac
+     2761 catcacccta atcaagtttt ttggggtcga ggtgccgtaa agcactaaat cggaacccta
+     2821 aagggagccc ccgatttaga gcttgacggg gaaagccggc gaacgtggcg agaaaggaag
+     2881 ggaagaaagc gaaaggagcg ggcgctaggg cgctggcaag tgtagcggtc acgctgcgcg
+     2941 taaccaccac acccgccgcg cttaatgcgc cgctacaggg cgcgtcccat tcgccattca
+     3001 ggctacgcaa ctgttgggaa gggcgatcgg tgcgggcctc ttcgctatta cgccagggat
+     3061 cctgcagtaa tacgactcac tatagggcga attggagctc ggtacccaaa cactccctcg
+     3121 gtctagggcc aagggacttg ggatcagggt ccagggctcc gggtctaggg aatagggaaa
+     3181 tgggacttgg gatttgggtt acgggtaacg ggaatcgggt ctcgggctca gggacttggg
+     3241 aatagggctc tgggccacgg gattagggcc tagggaattg ggacctgggt ttagggctca
+     3301 gggatcaggg cccagggcta ag
+//

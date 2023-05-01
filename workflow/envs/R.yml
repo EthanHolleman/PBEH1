@@ -1,0 +1,9 @@
+channels:
+  - conda-forge
+  - r
+  - defaults
+dependencies:
+  - r-ggplot2
+  - r-ggpubr
+  - r-rcolorbrewer
+  - r-reshape

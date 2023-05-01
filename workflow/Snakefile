@@ -1,0 +1,29 @@
+import pandas as pd
+from pathlib import Path
+
+
+# read sample assignment table
+sample_df = pd.read_csv(config['SAMPLE_TABLE'], sep='\t')
+FLOW_CELLS = ['PBEH1-1', 'PBEH1-2']
+
+include: 'rules/fastQC.smk'
+include: 'rules/debarcode.smk'
+include: 'rules/footloop.smk'
+include: 'rules/multiqc.smk'
+include: 'rules/identifyPlasmids.smk'
+
+
+
+rule all:
+	input:
+		expand(
+			'output/plots/plasmidID/{flow_cell}.plasmid.length.count.png', flow_cell=FLOW_CELLS
+			),
+		expand(
+			'output/plots/barcodes/{flow_cell}/barcodes.readLength.{flow_cell}.png',
+			flow_cell=FLOW_CELLS
+		),
+		expand(
+			'output/fastqc/{flow_cell}',
+			flow_cell=FLOW_CELLS
+		)
