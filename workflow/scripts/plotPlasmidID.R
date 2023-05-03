@@ -33,17 +33,16 @@ plasmid.species.count <- ggplot(id.df, aes(x=ref_name, fill=ref_name)) + geom_ba
 
 
 length.by.id <- ggplot(id.df, aes(x=length, fill=ref_name)) +
-                geom_density(color='black') +
+                geom_density(color='black', alpha=0.4) +
                 theme_pubr() + theme(legend.position='none') +
                 scale_fill_viridis_d() + labs(x='Plasmid', y='Read length') +
                 geom_vline(data=exp.len, aes(xintercept=length, color=contruct_type),
-                           linetype="dashed") +
-                facet_wrap(~ref_name)
+                           linetype="dashed")
 
 
 length.no.id <- ggplot(no.id.len, aes(x=length), fill='tan') +
-                geom_density(color='black') +
-                theme_pubr() + theme(legend.position='none') +
+                geom_histogram(color='black') +
+                theme_pubr()
                 scale_fill_viridis_d() + labs(x='Plasmid', y='Read length') +
                 geom_vline(data=exp.len, aes(xintercept=length, color=contruct_type),
                            linetype="dashed")
@@ -52,7 +51,7 @@ length.no.id <- ggplot(no.id.len, aes(x=length), fill='tan') +
 
 
 ggsave(output.plot.path.count , plasmid.species.count, dpi=300, width=10, height=10, unit='in')
-ggsave(output.plot.path.length, length.by.id, dpi=1000, width=30, height=30, unit='in')
+ggsave(output.plot.path.length, length.by.id, dpi=1000, width=10, height=8, unit='in')
 ggsave(output.plot.path.noID , length.no.id, dpi=300, width=10, height=5, unit='in')
                          
 

@@ -34,9 +34,11 @@ def run_footloop(reads, output_dir, label, genome, index):
     
     cmd = f'submodules/footLoop/footLoop.pl -r {reads} \
             -n {target} -l {label} -g {genome} -i {index}'
-    print(cmd)
-    subprocess.run(cmd.split(''))
     
+    
+    if os.stat(reads).st_size > 0:
+        #output = subprocess.run(cmd.split(' '))
+        os.system(cmd)
 
 
 def determine_genome(validated_read_path, genome_dir):
@@ -51,8 +53,12 @@ for each_read_file in read_files:
     
     # determine what file we should use as the reference
     genome = determine_genome(each_read_file, genome_dir)
-    # run footloop program
-    run_footloop(each_read_file, output_dir, label, genome, index)
+    # check to make sure these are not read files without any plasmids 
+    # mapped to them
+    if 'nan' not in Path(each_read_file).name and 'None' not in Path(each_read_file).name:
+        # run footloop program
+        run_footloop(each_read_file, output_dir, label, genome, index)
+        break
 
 
 
