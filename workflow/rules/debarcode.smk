@@ -10,35 +10,52 @@ rule make_primer_fasta:
     script:'../scripts/primersToFasta.py'
 
 
-
-rule blast_primers:
+rule bowtie_primers:
     conda:
-        '../envs/blast.yml'
+        '../envs/bowtie.yml'
     input:
-        query='output/barcode/refs/primers.fa',
-        db='output/blast/dbs/{flow_cell}/{flow_cell}_{file_num}'
+        primers='output/barcode/refs/primers.fa',
+        bowtie_db='output/bowtie/dbs/{flow_cell}/{flow_cell}_{file_num}'
     output:
-        "output/barcode/primerBLAST/{flow_cell}/{file_num}.blastn.search.tsv"
+        "output/barcode/primerBowtie/sam/{flow_cell}.{file_num}.sam"
     params:
-        db_path=lambda wildcards: f"output/blast/dbs/{wildcards.flow_cell}/{wildcards.flow_cell}_{wildcards.file_num}/{wildcards.flow_cell}_{wildcards.file_num}.blastn.db"
-    threads: 6
-    shell:
-        """
-    cat {input.query} | blastn -db {params.db_path} -outfmt 6 \
-                        -perc_identity 80 -task blastn -num_threads {threads} \
-                        > {output}
-    """
+        db_path=lambda wildcards: f"output/bowtie/dbs/{wildcards.flow_cell}/{wildcards.flow_cell}_{wildcards.file_num}/{wildcards.flow_cell}_{wildcards.file_num}"
+    shell:'''
+    bowtie2 -x {params.db_path} -f {input.primers} -S {output} -a
+    '''
 
 
-rule assign_samples:
+
+# rule blast_primers:
+#     conda:
+#         '../envs/blast.yml'
+#     input:
+#         query='../resources/anneal.fa',
+#         db='output/blast/dbs/{flow_cell}/{flow_cell}_{file_num}'
+#     output:
+#         "output/barcode/primerBLAST/{flow_cell}/{file_num}.blastn.search.tsv"
+#     params:
+#         db_path=lambda wildcards: f"output/blast/dbs/{wildcards.flow_cell}/{wildcards.flow_cell}_{wildcards.file_num}/{wildcards.flow_cell}_{wildcards.file_num}.blastn.db"
+#     threads: 6
+#     shell:
+#         """
+#     cat {input.query} | blastn -db {params.db_path} \
+#                         -outfmt "6 qseqid sseqid pident length mismatch gapopen \
+#                         qstart qend sstart send evalue bitscore sstrand" \
+#                         -task blastn -num_threads {threads} \
+#                         > {output}
+#     """
+
+rule assign_primers:
     conda:
         '../envs/py.yml'
     input:
-        blast="output/barcode/primerBLAST/{flow_cell}/{file_num}.blastn.search.tsv",
-        sample_table=config['SAMPLE_TABLE']
+        sam="output/barcode/primerBowtie/sam/{flow_cell}.{file_num}.sam",
+        reads='output/reads/seperatedTrim/{flow_cell}/{file_num}/sep.fastq',
+        samples=config['SAMPLE_TABLE']
     output:
         'output/barcode/primerAssignment/{flow_cell}/{file_num}.primerAssignment.tsv'
-    script:'../scripts/debarcodeBlast.py'
+    script:'../scripts/assignPrimers.py'
 
 
 
@@ -52,7 +69,6 @@ def agg_barcodes(wildcards):
         flow_cell=wildcards.flow_cell,
         file_num=file_num
     )
-
 
 
 rule concat_barcodes:
