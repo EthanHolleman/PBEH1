@@ -6,3 +6,4 @@ output/
 *.fa
 *.fastq
 *.pyc
+*.fai
