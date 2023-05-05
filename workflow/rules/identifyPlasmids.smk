@@ -1,34 +1,45 @@
 from pathlib import Path
 import glob
+import time
 
+
+# checkpoint break_up_fastq:
+#     conda:
+#         "../envs/py.yml"
+#     input:
+#         flow_cell_reads="output/unzippedReads/{flow_cell}.fastq",
+#     output:
+#         directory("output/reads/seperated/{flow_cell}"),
+#     params:
+#         lines_per_file=40000,  # 4 lines per fastq entry
+#         flow_cell=lambda wildcards: wildcards.flow_cell,
+#         filename="sep.fastq",
+#     shell:
+#         """
+#     mkdir -p {output}/temp
+#     split -d -l {params.lines_per_file} \
+#         {input} {output}/temp/
+#     python scripts/processSplit.py {output}/temp {params.filename}
+#     """
 
 checkpoint break_up_fastq:
     conda:
         "../envs/py.yml"
     input:
-        flow_cell_reads="output/unzippedReads/{flow_cell}.fastq",
+       "output/unzippedReads/{flow_cell}.fastq"
     output:
-        directory("output/reads/seperated/{flow_cell}"),
-    params:
-        lines_per_file=40000,  # 4 lines per fastq entry
-        flow_cell=lambda wildcards: wildcards.flow_cell,
-        filename="sep.fastq",
-    shell:
-        """
-    mkdir -p {output}/temp
-    split -d -l {params.lines_per_file} \
-        {input} {output}/temp/
-    python scripts/processSplit.py {output}/temp {params.filename}
-    """
+        expand("output/reads/seperated/{flow_cell}/{file_num}.fastq", 
+        file_num=DIVS, allow_missing=True)
+    script:'../scripts/splitFastq.py'
 
 
 rule prune_reads_by_length:
     conda:
         "../envs/py.yml"
     input:
-        "output/reads/seperated/{flow_cell}/{file_num}/sep.fastq",
+        "output/reads/seperated/{flow_cell}/{file_num}.fastq",
     output:
-        "output/reads/seperatedTrim/{flow_cell}/{file_num}/sep.fastq",
+        "output/reads/seperatedTrim/{flow_cell}/{file_num}.prune.fastq",
     params:
         lower=1100,
         upper=2700,
@@ -40,7 +51,7 @@ rule count_reads_and_length:
     conda:
         "../envs/py.yml"
     input:
-        "output/reads/seperatedTrim/{flow_cell}/{file_num}/sep.fastq",
+        "output/reads/seperatedTrim/{flow_cell}/{file_num}.prune.fastq",
     output:
         read_counts="output/reads/readCounts/{flow_cell}/sep/{file_num}.count.tsv",
         read_lengths="output/reads/readLengths/{flow_cell}/sep/{file_num}.lengths.tsv",
@@ -64,35 +75,38 @@ rule count_reads_no_plasmid_id:
         "../scripts/countUniqueReads.py"
 
 
-def agg_count_reads(wildcards):
-    checkpoint_output = checkpoints.break_up_fastq.get(**wildcards).output[0]
-    print(wildcards, "wildcards")
-    file_num = glob_wildcards(
-        Path(checkpoint_output).joinpath("{file_num}/sep.fastq")
-    ).file_num
-    return expand(
-        "output/reads/readCounts/{flow_cell}/sep/{file_num}.count.tsv",
-        flow_cell=wildcards.flow_cell,
-        file_num=file_num,
-    )
+# def agg_count_reads(wildcards):
+#     checkpoint_output = checkpoints.break_up_fastq.get(**wildcards).output[0]
+#     print(wildcards, "wildcards")
+#     file_num = glob_wildcards(
+#         Path(checkpoint_output).joinpath("{file_num}/sep.fastq") output/reads/seperated/{flow_cell}/{file_num}.fastq
+#     ).file_num
+#     return expand(
+#         "output/reads/readCounts/{flow_cell}/sep/{file_num}.count.tsv",
+#         flow_cell=wildcards.flow_cell,
+#         file_num=file_num,
+#     )
 
 
-def agg_count_reads_no_id(wildcards):
-    checkpoint_output = checkpoints.break_up_fastq.get(**wildcards).output[0]
-    print(wildcards, "wildcards")
-    file_num = glob_wildcards(
-        Path(checkpoint_output).joinpath("{file_num}/sep.fastq")
-    ).file_num
-    return expand(
-        "output/plasmidID/noID/{flow_cell}/readLengths/{file_num}.no.ID.lengths.tsv",
-        flow_cell=wildcards.flow_cell,
-        file_num=file_num,
-    )
+# def agg_count_reads_no_id(wildcards):
+#     checkpoint_output = checkpoints.break_up_fastq.get(**wildcards).output[0]
+#     print(wildcards, "wildcards")
+#     file_num = glob_wildcards(
+#         Path(checkpoint_output).joinpath("{file_num}/sep.fastq")
+#     ).file_num
+#     return expand(
+#         "output/plasmidID/noID/{flow_cell}/readLengths/{file_num}.no.ID.lengths.tsv",
+#         flow_cell=wildcards.flow_cell,
+#         file_num=file_num,
+#     )
 
 
 rule concat_no_plasmid_id_lengths:
     input:
-        agg_count_reads_no_id,
+        expand(
+            'output/plasmidID/noID/{flow_cell}/readLengths/{file_num}.no.ID.lengths.tsv',
+            file_num=DIVS, allow_missing=True
+        )
     output:
         "output/plasmidID/noID/{flow_cell}/allReadLengths/all.no.ID.lengths.tsv",
     shell:
@@ -101,18 +115,21 @@ rule concat_no_plasmid_id_lengths:
     """
 
 
-rule plot_no_plasmid_id_lengths:
-    input:
-        read_lengths="output/plasmidID/noID/{flow_cell}/allReadLengths/all.no.ID.lengths.tsv",
-    output:
-        "",
-    script:
-        "../scripts/plotNoIDLengths.R"
+# rule plot_no_plasmid_id_lengths:
+#     input:
+#         read_lengths="output/plasmidID/noID/{flow_cell}/allReadLengths/all.no.ID.lengths.tsv",
+#     output:
+#         "",
+#     script:
+#         "../scripts/plotNoIDLengths.R"
 
 
 rule concat_read_counts:
     input:
-        agg_count_reads,
+        expand(
+            'output/reads/readCounts/{flow_cell}/sep/{file_num}.count.tsv',
+            file_num=DIVS, allow_missing=True
+        )
     output:
         "output/reads/readCounts/{flow_cell}/{flow_cell}.all.count.tsv",
     shell:
@@ -125,8 +142,8 @@ rule concat_flow_cell_counts:
     input:
         expand(
             "output/reads/readCounts/{flow_cell}/{flow_cell}.all.count.tsv",
-            flow_cell=FLOW_CELLS,
-        ),
+            flow_cell=FLOW_CELLS, allow_missing=True
+        )
     output:
         "output/reads/readCounts/allFlowCells.count.tsv",
     shell:
@@ -150,9 +167,9 @@ rule fastq_to_fasta:
     conda:
         "../envs/blast.yml"
     input:
-        "output/reads/seperatedTrim/{flow_cell}/{file_num}/sep.fastq",
+        "output/reads/seperatedTrim/{flow_cell}/{file_num}.prune.fastq",
     output:
-        "output/reads/seperatedFasta/{flow_cell}/{file_num}/sep.fasta",
+        "output/reads/seperatedTrim/{flow_cell}/{file_num}.prune.fa",
     shell:
         """
     seqtk seq -a {input} > {output}
@@ -163,7 +180,7 @@ rule make_bowtie2_db:
     conda:
         "../envs/bowtie.yml"
     input:
-        seqs="output/reads/seperatedFasta/{flow_cell}/{file_num}/sep.fasta",
+        seqs="output/reads/seperatedTrim/{flow_cell}/{file_num}.prune.fa",
     output:
         directory("output/bowtie/dbs/{flow_cell}/{flow_cell}_{file_num}"),
     params:
@@ -203,42 +220,41 @@ rule sam_to_tsv:
     """
 
 
-rule make_blast_db:
-    # build blastn databases for the split reads
-    conda:
-        "../envs/blast.yml"
-    input:
-        seqs="output/reads/seperatedFasta/{flow_cell}/{file_num}/sep.fasta",
-    output:
-        directory("output/blast/dbs/{flow_cell}/{flow_cell}_{file_num}"),
-    params:
-        db_name=lambda wildcards: f"{wildcards.flow_cell}_{wildcards.file_num}",
-        db_path=lambda wildcards: f"output/blast/dbs/{wildcards.flow_cell}/{wildcards.flow_cell}_{wildcards.file_num}/{wildcards.flow_cell}_{wildcards.file_num}.blastn.db",
-    shell:
-        """
-    mkdir -p {output}
-    makeblastdb -in {input.seqs} -parse_seqids \
-    -title "{params.db_name}" -dbtype nucl -out {params.db_path}
-    """
+# rule make_blast_db:
+#     # build blastn databases for the split reads
+#     conda:
+#         "../envs/blast.yml"
+#     input:
+#         seqs="output/reads/seperatedFasta/{flow_cell}/{file_num}/sep.fasta",
+#     output:
+#         directory("output/blast/dbs/{flow_cell}/{flow_cell}_{file_num}"),
+#     params:
+#         db_name=lambda wildcards: f"{wildcards.flow_cell}_{wildcards.file_num}",
+#         db_path=lambda wildcards: f"output/blast/dbs/{wildcards.flow_cell}/{wildcards.flow_cell}_{wildcards.file_num}/{wildcards.flow_cell}_{wildcards.file_num}.blastn.db",
+#     shell:
+#         """
+#     mkdir -p {output}
+#     makeblastdb -in {input.seqs} -parse_seqids \
+#     -title "{params.db_name}" -dbtype nucl -out {params.db_path}
+#     """
 
 
-rule local_blast_plasmids:
-    # blast the plasmid identifying sequences against the database
-    # of reads
-    conda:
-        "../envs/blast.yml"
-    input:
-        db="output/blast/dbs/{flow_cell}/{flow_cell}_{file_num}",
-        query=config["PLASMID_ID_SEQS"],
-    output:
-        "output/plasmidID/search/{flow_cell}/{file_num}/blastn.search.tsv",
-    params:
-        db_path=lambda wildcards: f"output/blast/dbs/{wildcards.flow_cell}/{wildcards.flow_cell}_{wildcards.file_num}/{wildcards.flow_cell}_{wildcards.file_num}.blastn.db",
-    shell:
-        """
-    cat {input.query} | blastn -db {params.db_path} -outfmt 6 -perc_identity 85 -task blastn > {output}
-    """
-
+# rule local_blast_plasmids:
+#     # blast the plasmid identifying sequences against the database
+#     # of reads
+#     conda:
+#         "../envs/blast.yml"
+#     input:
+#         db="output/blast/dbs/{flow_cell}/{flow_cell}_{file_num}",
+#         query=config["PLASMID_ID_SEQS"],
+#     output:
+#         "output/plasmidID/search/{flow_cell}/{file_num}/blastn.search.tsv",
+#     params:
+#         db_path=lambda wildcards: f"output/blast/dbs/{wildcards.flow_cell}/{wildcards.flow_cell}_{wildcards.file_num}/{wildcards.flow_cell}_{wildcards.file_num}.blastn.db",
+#     shell:
+#         """
+#     cat {input.query} | blastn -db {params.db_path} -outfmt 6 -perc_identity 85 -task blastn > {output}
+#     """
 
 rule identify_plasmid:
     conda:
@@ -266,22 +282,25 @@ rule merge_read_length_plasmid_id:
         "../scripts/addLengthToIDs.py"
 
 
-def agg_read_lengths(wildcards):
-    checkpoint_output = checkpoints.break_up_fastq.get(**wildcards).output[0]
-    print(wildcards, "wildcards")
-    file_num = glob_wildcards(
-        Path(checkpoint_output).joinpath("{file_num}/sep.fastq")
-    ).file_num
-    return expand(
-        "output/plasmidID/{flow_cell}/mergedIDs/{flow_cell}.{file_num}.lengths.ID.tsv",
-        flow_cell=wildcards.flow_cell,
-        file_num=file_num,
-    )
+# def agg_read_lengths(wildcards):
+#     checkpoint_output = checkpoints.break_up_fastq.get(**wildcards).output[0]
+#     print(wildcards, "wildcards")
+#     file_num = glob_wildcards(
+#         Path(checkpoint_output).joinpath("{file_num}/sep.fastq")
+#     ).file_num
+#     return expand(
+#         "output/plasmidID/{flow_cell}/mergedIDs/{flow_cell}.{file_num}.lengths.ID.tsv",
+#         flow_cell=wildcards.flow_cell,
+#         file_num=file_num,
+#     )
 
 
 rule concat_read_lengths:
     input:
-        agg_read_lengths,
+        expand(
+            'output/plasmidID/{flow_cell}/mergedIDs/{flow_cell}.{file_num}.lengths.ID.tsv',
+            file_num=DIVS, allow_missing=True
+        )
     output:
         "output/reads/readLengths/{flow_cell}/all.lengths.tsv",
     shell:
@@ -290,30 +309,30 @@ rule concat_read_lengths:
     """
 
 
-def agg_plasmid_ids(wildcards):
-    checkpoint_output = checkpoints.break_up_fastq.get(**wildcards).output[0]
-    print(wildcards, "wildcards")
-    file_num = glob_wildcards(
-        Path(checkpoint_output).joinpath("{file_num}/sep.fastq")
-    ).file_num
-    return expand(
-        "output/plasmidID/{flow_cell}/mergedIDs/{flow_cell}.{file_num}.lengths.ID.tsv",
-        flow_cell=wildcards.flow_cell,
-        file_num=file_num,
-    )
+# def agg_plasmid_ids(wildcards):
+#     checkpoint_output = checkpoints.break_up_fastq.get(**wildcards).output[0]
+#     print(wildcards, "wildcards")
+#     file_num = glob_wildcards(
+#         Path(checkpoint_output).joinpath("{file_num}/sep.fastq")
+#     ).file_num
+#     return expand(
+#         "output/plasmidID/{flow_cell}/mergedIDs/{flow_cell}.{file_num}.lengths.ID.tsv",
+#         flow_cell=wildcards.flow_cell,
+#         file_num=file_num,
+#     )
 
 
-def agg_plasmid_no_ids(wildcards):
-    checkpoint_output = checkpoints.break_up_fastq.get(**wildcards).output[0]
-    print(wildcards, "wildcards")
-    file_num = glob_wildcards(
-        Path(checkpoint_output).joinpath("{file_num}/sep.fastq")
-    ).file_num
-    return expand(
-        "output/plasmidID/noID/{flow_cell}/{file_num}.no.ID.fastq",
-        flow_cell=wildcards.flow_cell,
-        file_num=file_num,
-    )
+# def agg_plasmid_no_ids(wildcards):
+#     checkpoint_output = checkpoints.break_up_fastq.get(**wildcards).output[0]
+#     print(wildcards, "wildcards")
+#     file_num = glob_wildcards(
+#         Path(checkpoint_output).joinpath("{file_num}/sep.fastq")
+#     ).file_num
+#     return expand(
+#         "output/plasmidID/noID/{flow_cell}/{file_num}.no.ID.fastq",
+#         flow_cell=wildcards.flow_cell,
+#         file_num=file_num,
+#     )
 
 
 rule group_no_id_read:
@@ -321,7 +340,7 @@ rule group_no_id_read:
         "../envs/py.yml"
     input:
         plasmid_id="output/plasmidID/{flow_cell}/{file_num}/plasmidID.tsv",
-        reads="output/reads/seperatedTrim/{flow_cell}/{file_num}/sep.fastq",
+        reads="output/reads/seperatedTrim/{flow_cell}/{file_num}.prune.fastq",
     output:
         "output/plasmidID/noID/{flow_cell}/{file_num}.no.ID.fastq",
     script:
@@ -330,7 +349,10 @@ rule group_no_id_read:
 
 rule concat_plasmid_ids:
     input:
-        agg_plasmid_ids,
+        expand(
+            'output/plasmidID/{flow_cell}/mergedIDs/{flow_cell}.{file_num}.lengths.ID.tsv',
+            file_num=DIVS, allow_missing=True
+        ),
     output:
         "output/plasmidID/allPlasmidID/{flow_cell}/{flow_cell}.concat.plasmidID.tsv",
     shell:
@@ -341,7 +363,10 @@ rule concat_plasmid_ids:
 
 rule agg_plasmid_no_ids:
     input:
-        agg_plasmid_no_ids,
+        expand(
+            'output/plasmidID/noID/{flow_cell}/{file_num}.no.ID.fastq',
+            file_num=DIVS, allow_missing=True
+        ),
     output:
         "output/plasmidID/allPlasmidNoIDs/{flow_cell}/{flow_cell}.concat.no.ID.tsv",
     shell:
@@ -356,24 +381,42 @@ rule plot_plasmid_id_count:
     input:
         plasmid_id="output/plasmidID/allPlasmidID/{flow_cell}/{flow_cell}.concat.plasmidID.tsv",
         no_plasmid_id="output/plasmidID/allPlasmidNoIDs/{flow_cell}/{flow_cell}.concat.no.ID.tsv",
-        read_lengths="../resources/productLengths/productLengthsExpected.tsv",
+        read_lengths="../resources/productLengths/productLengthsExpected.tsv"
     output:
         countPlot="output/plots/plasmidID/{flow_cell}.plasmid.count.png",
         lengthPlot="output/plots/plasmidID/{flow_cell}.plasmid.length.count.png",
-        lengthNoID="output/plots/plasmidID/{flow_cell}.plasmid.length.no.ID.png",
+        pFC9Plot="output/plots/plasmidID/{flow_cell}.pFC9.length.png"
     script:
         "../scripts/plotPlasmidID.R"
 
 
-rule group_plasmids:
+checkpoint group_plasmids:
     conda:
         "../envs/py.yml"
     input:
         plasmid_id_df="output/plasmidID/{flow_cell}/{file_num}/plasmidID.tsv",
-        reads="output/reads/seperatedTrim/{flow_cell}/{file_num}/sep.fastq",
+        reads="output/reads/seperatedTrim/{flow_cell}/{file_num}.prune.fastq",
         id_count="output/plots/plasmidID/{flow_cell}.plasmid.count.png",
         read_count="output/plots/readCounts/totalReadCounts.png",
     output:
         directory("output/groupedReads/{flow_cell}/{file_num}/"),
     script:
         "../scripts/groupReadsByPlasmid.py"
+    
+
+def agg_plasmids(wildcards):
+    s = time.time()
+    checkpoint_output = checkpoints.group_plasmids.get(**wildcards).output[0]
+    print(wildcards, "wildcards")
+    plasmid = glob_wildcards(
+        Path(checkpoint_output).joinpath("{plasmid}.gb.group.fastq")
+    ).plasmid
+    print(time.time() - s)
+    return expand(
+        "output/groupedReads/{flow_cell}/{file_num}/{plasmid}.gb.group.fastq",
+        flow_cell=wildcards.flow_cell,
+        file_num=wildcards.file_num,
+        plasmid=plasmid
+    )
+
+

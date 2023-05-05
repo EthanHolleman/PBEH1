@@ -20,4 +20,3 @@ rule runFastQC:
 	mkdir {output.output_dir}
 	fastqc -o {output.output_dir} -t {threads} {input.flow_cell_reads}
 	'''
-
