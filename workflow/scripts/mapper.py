@@ -33,11 +33,12 @@ def run_footloop(reads, output_dir, label, genome, index):
     target.mkdir(parents=True)
     
     cmd = f'submodules/footLoop/footLoop.pl -r {reads} \
-            -n {target} -l {label} -g {genome} -i {index}'
+            -n {target} -l {label} -g {genome} -i {index} -Z'
     
     
     if os.stat(reads).st_size > 0:
         #output = subprocess.run(cmd.split(' '))
+        print('EMPTY FILE:', reads, 'NOT RUNNING')
         os.system(cmd)
 
 
@@ -58,7 +59,6 @@ for each_read_file in read_files:
     if 'nan' not in Path(each_read_file).name and 'None' not in Path(each_read_file).name:
         # run footloop program
         run_footloop(each_read_file, output_dir, label, genome, index)
-        break
 
 
 
