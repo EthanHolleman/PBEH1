@@ -4,7 +4,13 @@ from pathlib import Path
 
 # read sample assignment table
 sample_df = pd.read_csv(config['SAMPLE_TABLE'], sep='\t')
-FLOW_CELLS = ['PBEH1-1', 'PBEH1-2']
+FLOW_CELLS = ['PBEH1_1', 'PBEH1_2']
+PLASMIDS = [
+	f.stem for f in Path('/home/ethollem/workflows/PBEH1/resources/referenceDNA/genbank').iterdir()
+	]
+NUM_DIVS = 100
+DIVS = [i for i in range(1, NUM_DIVS+1)]
+
 
 include: 'rules/fastQC.smk'
 include: 'rules/debarcode.smk'
@@ -12,18 +18,9 @@ include: 'rules/footloop.smk'
 include: 'rules/multiqc.smk'
 include: 'rules/identifyPlasmids.smk'
 
-
-
 rule all:
 	input:
 		expand(
-			'output/plots/plasmidID/{flow_cell}.plasmid.length.count.png', flow_cell=FLOW_CELLS
-			),
-		expand(
-			'output/plots/barcodes/{flow_cell}/barcodes.readLength.{flow_cell}.png',
-			flow_cell=FLOW_CELLS
-		),
-		expand(
-			'output/fastqc/{flow_cell}',
-			flow_cell=FLOW_CELLS
+			'output/aggMapping/{flow_cell}.{file_num}.done',
+			 flow_cell=FLOW_CELLS, file_num=DIVS
 		)
