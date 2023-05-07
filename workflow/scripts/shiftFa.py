@@ -36,7 +36,8 @@ def generate_bed6_entry(record):
 
 
 def get_shifted_output_path(output_dir, ref_path):
-    return Path(output_dir).joinpath(f'{ref_path.stem}.shift.fasta')
+    plasmid_name = ref_path.stem.replace('-', '_')
+    return Path(output_dir).joinpath(f'{plasmid_name}.shift.fasta')
 
 shifted_records = []
 bed_entries = []

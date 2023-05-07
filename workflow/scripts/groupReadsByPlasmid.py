@@ -13,6 +13,9 @@ def assign_groups(plasmid_id_df):
 
 def generate_output_path(output_dir, group):
     num = Path(output_dir).parts[-1]
+    if isinstance(group, str):
+        group = group.replace('-', '_')
+    print(group)
     return Path(output_dir).joinpath(f'{group}.group.fastq')
 
 
