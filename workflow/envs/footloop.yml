@@ -6,7 +6,5 @@ dependencies:
   - perl
   - bismark==0.20.0
   - bowtie2==2.2.6
-  - bedtools
-  - samtools
-  - python
-  - pandas
+  - bedtools==2.25.0
+  - samtools==0.1.19

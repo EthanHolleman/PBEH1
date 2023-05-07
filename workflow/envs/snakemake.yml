@@ -1,0 +1,9 @@
+channels:
+  - conda-forge
+  - defaults
+  - bioconda
+dependencies:
+  - snakemake
+  - pandas
+
+  
