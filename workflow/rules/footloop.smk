@@ -77,7 +77,7 @@ rule map_reads:
     conda:
         '../envs/footloop.yml'
     input:
-        reads='output/groupedReadsClipped/{flow_cell}/{file_num}/{plasmid}.gb.group.fastq',
+        reads='output/groupedReads/{flow_cell}/{file_num}/{plasmid}.gb.group.fastq',
         index='output/mapping/genome/aggregatedGenome.bed'
     output:
         output_dir=directory('output/mapping/{flow_cell}/{file_num}/{plasmid}')
@@ -86,13 +86,16 @@ rule map_reads:
             flow_cell_name_to_footloop_label(wildcards.flow_cell),
         genome=lambda wildcards: f'output/mapping/shiftedRefs/{wildcards.plasmid}.shift.fasta',
         genome_index=lambda wildcards: f'../resources/referenceDNA/fasta/{wildcards.plasmid}.fasta.fai',
-        plasmid_id=config['PLASMID_ID_TABLE']
+        plasmid_id=config['PLASMID_ID_TABLE'],
+        rel_path='../../../../../'
     resources:
         time=360,  # 120 mins
         mem_mb=16000
     shell:'''
-    submodules/footLoop/footLoop.pl -r {input.reads} -n {output.output_dir} \
-    -l {params.label} -g {params.genome} -i {input.index} -Z
+    mkdir -p {output.output_dir}
+    cd {output.output_dir}
+    {params.rel_path}submodules/footLoop/footLoop.pl -r {params.rel_path}{input.reads} -n {params.rel_path}{output.output_dir} \
+    -l {params.label} -g {params.rel_path}{params.genome} -i {params.rel_path}{input.index} -Z
     '''
     # this command deletes the index file created by the fastaFromBed command
     # in case fasta name has changed. Bedtool will not detect this and then 
