@@ -77,7 +77,7 @@ rule map_reads:
     conda:
         '../envs/footloop.yml'
     input:
-        reads='output/groupedReads/{flow_cell}/{file_num}/{plasmid}.gb.group.fastq',
+        reads='output/groupedReadsClipped/{flow_cell}/{file_num}/{plasmid}.gb.group.fastq',
         index='output/mapping/genome/aggregatedGenome.bed'
     output:
         output_dir=directory('output/mapping/{flow_cell}/{file_num}/{plasmid}')
