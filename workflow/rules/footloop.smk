@@ -23,42 +23,6 @@ def flow_cell_name_to_footloop_label(flow_cell):
 
 
 
-# rule gzip_split_files:
-#     input:
-#         'output/groupedReads/{flow_cell}/{file_num}/{ref_name}.group.fastq'
-#     output:
-#         'output/groupedReads/{flow_cell}/{file_num}/{ref_name}.group.fastq'
-#     resources:
-#         mem_mb=2048,
-#         cpu=1,
-#         disk_mb=5000,
-#         time_hr=2
-#     shell:'''
-#     gzip {input}
-#     '''
-
-
-# rule map_reads:
-#     # map all reads of a flowcell against all references included in the
-#     # aggregated genome file
-#     conda:
-#         '../envs/footloop.yml'
-#     input:
-#         reads='output/groupedReads/{flow_cell}/{file_num}',
-#         index='output/mapping/genome/aggregatedGenome.bed'
-#     output:
-#         output_dir=directory('output/mapping/{flow_cell}/{file_num}')
-#     params:
-#         label=lambda wildcards: 
-#             flow_cell_name_to_footloop_label(wildcards.flow_cell),
-#         genome_dir='../resources/referenceDNA/fasta',
-#         plasmid_id=config['PLASMID_ID_TABLE']
-#     resources:
-#         time=120,  # 120 mins
-#         mem_mb=16000
-#     script:'../scripts/mapper.py'
-
-
 rule trim_read_ends:
     conda:
         '../envs/blast.yml'
@@ -73,21 +37,34 @@ rule trim_read_ends:
 
 rule map_reads:
     # map all reads of a flowcell against all references included in the
-    # aggregated genome file
+    # aggregated genome file. It is CRITICAL that commands issues by snakemake
+    # are executed in the output directory. This is because some program that is
+    # run as a part of footloop.pl dumps files into the directory that the command
+    # was issued from. If there are multible footloop.pl instances running
+    # at the same time (lots of snakemake jobs) then the different jobs can end up
+    # writing to the same file causing confusion and resulting in 0% mapping
+    # Also need to be aware of the .fai index files that are created by bedToFasta command
+    # as part of the footloop.pl script. If fasta header names change these need to be
+    # deleted manually otherwise nothing will map. HEED THESE WARNINGS; they were learned
+    # the hard way. 
     conda:
         '../envs/footloop.yml'
     input:
         reads='output/groupedReadsClipped/{flow_cell}/{file_num}/{plasmid}.gb.group.fastq',
         index='output/mapping/genome/aggregatedGenome.bed'
     output:
-        output_dir=directory('output/mapping/{flow_cell}/{file_num}/{plasmid}')
+        output_dir=directory('output/mapping/{flow_cell}/{file_num}/{plasmid}'),
+        done='output/mapping/{flow_cell}/{file_num}/{plasmid}/updatedMapping.done.touch'
+        # extra file used to trigger remapping without deleting all output
     params:
         label=lambda wildcards: 
             flow_cell_name_to_footloop_label(wildcards.flow_cell),
         genome=lambda wildcards: f'output/mapping/shiftedRefs/{wildcards.plasmid}.shift.fasta',
         genome_index=lambda wildcards: f'../resources/referenceDNA/fasta/{wildcards.plasmid}.fasta.fai',
         plasmid_id=config['PLASMID_ID_TABLE'],
-        rel_path='../../../../../'
+        rel_path='../../../../../',
+        updatedMappingName='updatedMapping.done.touch',
+        min_amplicon_length='40p'  # min percent length of read compared to amplicon length
     resources:
         time=360,  # 120 mins
         mem_mb=16000
@@ -95,28 +72,44 @@ rule map_reads:
     mkdir -p {output.output_dir}
     cd {output.output_dir}
     {params.rel_path}submodules/footLoop/footLoop.pl -r {params.rel_path}{input.reads} -n {params.rel_path}{output.output_dir} \
-    -l {params.label} -g {params.rel_path}{params.genome} -i {params.rel_path}{input.index} -Z
+    -l {params.label} -g {params.rel_path}{params.genome} -i {params.rel_path}{input.index} \
+    -L {params.min_amplicon_length} -Z
+    touch {params.updatedMappingName}
     '''
-    # this command deletes the index file created by the fastaFromBed command
-    # in case fasta name has changed. Bedtool will not detect this and then 
-    # it will never find the correct fasta file. I learned this the
-    # hard way :(
 
 
 rule call_peak:
     conda:
         '../envs/footloop.yml'
     input:
-        'output/mapping/{flow_cell}/{file_num}/{plasmid}'
+        mapping_dir='output/mapping/{flow_cell}/{file_num}/{plasmid}',
+        update='output/mapping/{flow_cell}/{file_num}/{plasmid}/updatedMapping.done.touch'
     output:
-        directory('output/peakCall/{flow_cell}/{file_num}/{plasmid}')
+        peak_call = directory('output/peakCall/{flow_cell}/{file_num}/{plasmid}'),
+    params:
+        label=lambda wildcards: 
+            flow_cell_name_to_footloop_label(wildcards.flow_cell),
+        min_amplicon_length='40p'  # min percent length of read compared to amplicon length
     resources:
-        time=120,
-        mem_mb=16000
+        time=60,
+        mem_mb=10000
     shell:'''
-    submodules/footLoop/footPeak.pl -n {input} -o {output}
+    mkdir -p {output.peak_call}
+    submodules/footLoop/footPeak.pl -n {input.mapping_dir} -o {output.peak_call}
     '''
-    
+
+
+rule assign_sample_to_peaks:
+    conda:
+        '../envs/py.yml'
+    input:
+        mapping='output/mapping/{flow_cell}/{file_num}/{plasmid}',
+        samples='output/barcode/primerAssignment/{flow_cell}/{file_num}.primerAssignment.tsv'
+    output:
+        'output/peakMerge/{flow_cell}/{file_num}/{plasmid}.merge.tsv'
+    script:'../scripts/assignSampleToPeaks.py'
+
+
 
 def agg_mapping(wildcards):
     checkpoint_output = checkpoints.group_plasmids.get(**wildcards).output[0]
@@ -130,6 +123,7 @@ def agg_mapping(wildcards):
         file_num=wildcards.file_num,
         plasmid=plasmid
     )
+
 
 rule agg_all_mapping:
     input:
