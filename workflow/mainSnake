@@ -6,11 +6,12 @@ FLOW_CELLS = ['PBEH1_1', 'PBEH1_2']
 NUM_DIVS = 100
 DIVS = [i for i in range(1, NUM_DIVS+1)]
 
+
 rule all:
     input:
         expand(
-                'output/check/{flow_cell}.{file_num}.txt',
-                flow_cell=FLOW_CELLS, file_num=DIVS
+                'output/.done/agg.peaks.{flow_cell}.txt',
+                flow_cell=FLOW_CELLS
             )
 
 subworkflow otherworkflow:
@@ -23,9 +24,18 @@ subworkflow otherworkflow:
 
 rule a:
     input:
-        otherworkflow("output/aggMapping/{flow_cell}.{file_num}.done")
+        otherworkflow("output/peakMerge/{flow_cell}.all.peaks.tsv")
     output:
-        'output/check/{flow_cell}.{file_num}.txt'
+        'output/.done/agg.peaks.{flow_cell}.txt'
+    shell: '''
+    touch {output}
+    '''
+
+rule b:
+    input:
+        otherworkflow("output/plots/barcodes/{flow_cell}/barcodes.heatmaps.{flow_cell}.png")
+    output:
+        'output/barcodeCheck/{flow_cell}.txt'
     shell: '''
     touch {output}
     '''
