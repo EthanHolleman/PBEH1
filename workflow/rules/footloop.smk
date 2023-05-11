@@ -15,6 +15,28 @@ rule aggregate_genome_files:
         '../scripts/shiftFa.py'
 
 
+rule migrate_annotations:
+    conda:
+        '../envs/py.yml'
+    input:
+        'output/mapping/shiftedRefs/'
+    output:
+        directory('output/mapping/migratedAnnos/')
+    params:
+        genbank_files=f"{config['GENOME_DIR']}/genbank"
+    script:'../migrateAnnotations.py'
+
+
+rule genbank_to_tsv:
+    conda:
+        '../envs/py.yml'
+    input:
+        'output/mapping/migratedAnnos/'
+    output:
+        'output/mapping/shiftedGbTsv/shifted.gb.tsv'
+    script:'../scripts/genbankToTsv.py'
+
+
 def flow_cell_name_to_footloop_label(flow_cell):
     # Converts a flowcell label into a label that footloop likes
     d1 = flow_cell.split('-')[0][-1]
@@ -103,33 +125,119 @@ rule assign_sample_to_peaks:
     conda:
         '../envs/py.yml'
     input:
-        mapping='output/mapping/{flow_cell}/{file_num}/{plasmid}',
+        peaks='output/peakCall/{flow_cell}/{file_num}/{plasmid}',
         samples='output/barcode/primerAssignment/{flow_cell}/{file_num}.primerAssignment.tsv'
     output:
         'output/peakMerge/{flow_cell}/{file_num}/{plasmid}.merge.tsv'
+    params:
+        plasmid_name = lambda wildcards: wildcards.plasmid
     script:'../scripts/assignSampleToPeaks.py'
 
 
+# def agg_peaks(wildcards):
 
-def agg_mapping(wildcards):
+#     tsv_files = []
+#     # collect all directories to get plasmid names bt file num and flow cell
+#     sep_dirs = expand(
+#         'output/groupedReads/{flow_cell}/{file_num}/',
+#         flow_cell=wildcards.flow_cell, file_num=DIVS
+#     )
+#     print(wildcards)
+#     for each_dir in sep_dirs:
+#         print(each_dir)
+#         files = Path(each_dir).iterdir()
+#         plasmid_names = [p.stem.split('.')[0] for p in files 
+#             if p.suffix == '.fastq' 
+#             and 'nan' not in p.name 
+#             and 'None' not in p.name
+#         ]
+#         tsv_paths = expand(
+#             'output/peakMerge/{flow_cell}/{file_num}/{plasmid}.merge.tsv',
+#             flow_cell=wildcards.flow_cell, file_num=DIVS, plasmid=plasmid_names
+#         )
+#         tsv_files += tsv_paths
+#     return tsv_files
+
+
+def agg_peaks(wildcards):
     checkpoint_output = checkpoints.group_plasmids.get(**wildcards).output[0]
-    print(wildcards, "wildcards")
+    print('starting glob')
     plasmid = glob_wildcards(
         Path(checkpoint_output).joinpath("{plasmid}.gb.group.fastq")
     ).plasmid
-    return expand(
-        "output/peakCall/{flow_cell}/{file_num}/{plasmid}",
+    print('end glob')
+    e = expand(
+        "output/peakMerge/{flow_cell}/{file_num}/{plasmid}.merge.tsv",
         flow_cell=wildcards.flow_cell,
         file_num=wildcards.file_num,
         plasmid=plasmid
     )
+    return e
 
+    
 
-rule agg_all_mapping:
+rule concat_by_file_num:
     input:
-        agg_mapping
+        agg_peaks
     output:
-        'output/aggMapping/{flow_cell}.{file_num}.done'
-    shell:'''
-    touch {output}
-    '''
+        'output/peakMerge/{flow_cell}.{file_num}.all.peaks.tsv'
+    shell:'../aggLabelPeaks.py'
+
+
+rule concat_all:
+    input:
+        expand(
+            'output/peakMerge/{flow_cell}.{file_num}.all.peaks.tsv',
+            allow_missing=True, file_num=DIVS
+        )
+    output:
+        'output/peakMerge/{flow_cell}.all.peaks.tsv'
+    shell:'../aggLabelPeaks.py'
+        
+    
+
+
+
+# def agg_peaks(wildcards):
+#     print(wildcards)
+#     checkpoint_output = checkpoints.group_plasmids.get(flow_cell=wildcards, file_num=DIVS[0]).output[0]
+#     print(wildcards, "wildcards")
+#     plasmid = glob_wildcards(
+#         Path(checkpoint_output).joinpath("{plasmid}.gb.group.fastq")
+#     ).plasmid
+#     e = expand(
+#         "output/peakMerge/{flow_cell}/{file_num}/{plasmid}.merge.tsv",
+#         flow_cell=wildcards.flow_cell,
+#         file_num=wildcards.file_num,
+#         plasmid=plasmid
+#     )
+#     print(e)
+#     return e
+
+
+# rule aggregate_labeled_peaks:
+#     conda:
+#         '../envs/py.yml'
+#     input:
+#         expand(
+#             'output/peakMerge/{flow_cell}/{file_num}/{plasmid}.merge.tsv',
+#             ''
+#     output:
+#         'output/peakMerge/{flow_cell}.all.peaks.tsv'
+#     script:'../aggLabelPeaks.py'
+
+
+# rule plot_footprints:
+#     conda:
+#         '../envs/jupyter.yml'
+#     input:
+#         barcode_plasmids='output/barcodePlasmidMerge/{flow_cell}.barcode.plasmid.ID.tsv',
+#         shifted_annos='output/mapping/shiftedGbTsv/shifted.gb.tsv',
+#         annotated_peaks='output/peakMerge/{flow_cell}.all.peaks.tsv'
+#     output:
+#         directory('output/plots/peaks/{flow_cell}/')
+#     script:'../scripts/test.py'
+    
+
+
+

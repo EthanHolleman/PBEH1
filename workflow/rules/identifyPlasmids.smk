@@ -420,3 +420,10 @@ def agg_plasmids(wildcards):
     )
 
 
+rule merge_barcodes_plasmid_assignments:
+    input:
+        flow_cell_barcodes='output/barcode/allBarcodes/{flow_cell}/{flow_cell}.all.barcodes.tsv',
+        flow_cell_plasmids='output/plasmidID/allPlasmidID/{flow_cell}/{flow_cell}.concat.plasmidID.tsv'
+    output:
+        'output/barcodePlasmidMerge/{flow_cell}.barcode.plasmid.ID.tsv'
+    script:'../scripts/assignPlasmidToBarcode.py'
