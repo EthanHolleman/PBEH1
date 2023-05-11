@@ -2,12 +2,12 @@
 # ============================================================================
 PBEH1_1: 
   data_dir: '/group/flchedingrp/datasets/rawdata/230424_Ethan/PB896_01_PBEH1-1_Amplicon'  # path to flow cell 1 data dir
-  fastq : '/home/ethollem/projects/PBEH1/PB896_01_PBEH1-1_Amplicon/CCS/outputs/m64069_230413_005848.hifi_reads.fastq.gz'  # extension to fastq file
+  fastq : '/group/flchedingrp/datasets/rawdata/230424_Ethan/PB896_01_PBEH1-1_Amplicon/CCS/outputs/m64069_230413_005848.hifi_reads.fastq.gz'  # extension to fastq file
 
 
 PBEH1_2:
   data_dir: '/group/flchedingrp/datasets/rawdata/230424_Ethan/PB896_02_PBEH1-2_Amplicon'
-  fastq: '/home/ethollem/projects/PBEH1/PB896_02_PBEH1-2_Amplicon/CCS/outputs/m64069_230413_111106.hifi_reads.fastq.gz'
+  fastq: '/group/flchedingrp/datasets/rawdata/230424_Ethan/PB896_02_PBEH1-2_Amplicon/CCS/outputs/m64069_230413_111106.hifi_reads.fastq.gz'
 
 SAMPLE_TABLE: '../resources/PBEH-1-samples.tsv'
 GENOME_DIR: '../resources/referenceDNA/'
