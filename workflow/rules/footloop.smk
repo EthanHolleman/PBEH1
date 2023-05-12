@@ -24,7 +24,7 @@ rule migrate_annotations:
         directory('output/mapping/migratedAnnos/')
     params:
         genbank_files=f"{config['GENOME_DIR']}/genbank"
-    script:'../migrateAnnotations.py'
+    script:'../scripts/migrateAnnotations.py'
 
 
 rule genbank_to_tsv:
@@ -168,37 +168,7 @@ rule concat_all:
         'output/peakMerge/{flow_cell}.all.peaks.tsv'
     script:'../scripts/aggLabelPeaks.py'
         
-    
 
-
-
-# def agg_peaks(wildcards):
-#     print(wildcards)
-#     checkpoint_output = checkpoints.group_plasmids.get(flow_cell=wildcards, file_num=DIVS[0]).output[0]
-#     print(wildcards, "wildcards")
-#     plasmid = glob_wildcards(
-#         Path(checkpoint_output).joinpath("{plasmid}.gb.group.fastq")
-#     ).plasmid
-#     e = expand(
-#         "output/peakMerge/{flow_cell}/{file_num}/{plasmid}.merge.tsv",
-#         flow_cell=wildcards.flow_cell,
-#         file_num=wildcards.file_num,
-#         plasmid=plasmid
-#     )
-#     print(e)
-#     return e
-
-
-# rule aggregate_labeled_peaks:
-#     conda:
-#         '../envs/py.yml'
-#     input:
-#         expand(
-#             'output/peakMerge/{flow_cell}/{file_num}/{plasmid}.merge.tsv',
-#             ''
-#     output:
-#         'output/peakMerge/{flow_cell}.all.peaks.tsv'
-#     script:'../aggLabelPeaks.py'
 
 
 rule plot_footprints:

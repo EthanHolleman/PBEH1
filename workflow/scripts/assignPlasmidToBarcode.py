@@ -13,10 +13,13 @@ def read_plasmid_tsv(filepath):
     return df
 
 
-flow_cell_barcodes = pd.read_csv(snakemake.input['flow_cell_barcodes'])
+flow_cell_barcodes = pd.read_csv(snakemake.input['flow_cell_barcodes'], sep='\t')
 flow_cell_plasmids =read_plasmid_tsv(snakemake.input['flow_cell_plasmids'])
+
+print(flow_cell_plasmids.head())
+print(flow_cell_barcodes.head())
 
 merge_df = flow_cell_plasmids.merge(flow_cell_barcodes, on='read')
 
-pd.write_csv(merge_df, snakemake.output[0])
+merge_df.write_csv(merge_df, snakemake.output[0])
 
