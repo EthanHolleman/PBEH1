@@ -6,7 +6,7 @@ from pathlib import Path
 sample_df = pd.read_csv(config['SAMPLE_TABLE'], sep='\t')
 FLOW_CELLS = ['PBEH1_1', 'PBEH1_2']
 PLASMIDS = [
-	f.stem for f in Path('/home/ethollem/projects/PBEH1/resources/referenceDNA/genbank').iterdir()
+	f.stem for f in Path('../resources/referenceDNA/genbank').iterdir()
 	]
 NUM_DIVS = 100
 DIVS = [i for i in range(1, NUM_DIVS+1)]
