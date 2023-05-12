@@ -15,11 +15,11 @@ default-resources:
   - partition=high
   - mem_mb=4000
 restart-times: 1
-max-jobs-per-second: 25
-max-status-checks-per-second: 5
+max-jobs-per-second: 50
+max-status-checks-per-second: 50
 local-cores: 1
 latency-wait: 60
-jobs: 100
+jobs: 250
 keep-going: True
 rerun-incomplete: True
 printshellcmds: True
