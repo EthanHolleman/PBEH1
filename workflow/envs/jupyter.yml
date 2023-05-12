@@ -1,0 +1,16 @@
+channels:
+ - conda-forge
+ - bioconda
+ - defaults
+dependencies:
+ - r-base=4.1.1
+ - r-ggplot2>=3.4.0
+ - bioconductor-ggbio
+ - r-ggpubr
+ - r-rentrez
+ - r-seqinr
+ - r-ape
+ - r-gggenes
+ - bioconductor-genbankr
+ - rpy2
+ - jupyter
