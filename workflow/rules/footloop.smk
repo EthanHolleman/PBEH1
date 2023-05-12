@@ -136,17 +136,17 @@ rule assign_sample_to_peaks:
 
 def agg_peaks(wildcards):
     checkpoint_output = checkpoints.group_plasmids.get(**wildcards).output[0]
-    print('starting glob')
     plasmid = glob_wildcards(
         Path(checkpoint_output).joinpath("{plasmid}.gb.group.fastq")
     ).plasmid
-    print('end glob')
+    print(plasmid)
     e = expand(
         "output/peakMerge/{flow_cell}/{file_num}/{plasmid}.merge.tsv",
         flow_cell=wildcards.flow_cell,
         file_num=wildcards.file_num,
         plasmid=plasmid
     )
+    print(e)
     return e
 
 
@@ -154,14 +154,14 @@ rule concat_by_file_num:
     input:
         agg_peaks
     output:
-        'output/peakMerge/{flow_cell}.{file_num}.all.peaks.tsv'
+        'output/peakMerge/byFile/{flow_cell}.{file_num}.all.peaks.tsv'
     script:'../scripts/aggLabelPeaks.py'
 
 
 rule concat_all:
     input:
         expand(
-            'output/peakMerge/{flow_cell}.{file_num}.all.peaks.tsv',
+            'output/peakMerge/byFile/{flow_cell}.{file_num}.all.peaks.tsv',
             allow_missing=True, file_num=DIVS
         )
     output:

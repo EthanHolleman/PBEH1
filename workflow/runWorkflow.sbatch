@@ -15,5 +15,4 @@ source /home/${USER}/.bashrc
 source activate snakemake
 rm -r logs/*
 snakemake -j 1 --configfile config/config.yml --unlock
-snakemake --profile profile --snakefile mainSnake --use-conda
-    
+snakemake --profile profile --snakefile Snakefile --configfile config/config.yml --use-conda
