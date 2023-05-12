@@ -134,31 +134,6 @@ rule assign_sample_to_peaks:
     script:'../scripts/assignSampleToPeaks.py'
 
 
-# def agg_peaks(wildcards):
-
-#     tsv_files = []
-#     # collect all directories to get plasmid names bt file num and flow cell
-#     sep_dirs = expand(
-#         'output/groupedReads/{flow_cell}/{file_num}/',
-#         flow_cell=wildcards.flow_cell, file_num=DIVS
-#     )
-#     print(wildcards)
-#     for each_dir in sep_dirs:
-#         print(each_dir)
-#         files = Path(each_dir).iterdir()
-#         plasmid_names = [p.stem.split('.')[0] for p in files 
-#             if p.suffix == '.fastq' 
-#             and 'nan' not in p.name 
-#             and 'None' not in p.name
-#         ]
-#         tsv_paths = expand(
-#             'output/peakMerge/{flow_cell}/{file_num}/{plasmid}.merge.tsv',
-#             flow_cell=wildcards.flow_cell, file_num=DIVS, plasmid=plasmid_names
-#         )
-#         tsv_files += tsv_paths
-#     return tsv_files
-
-
 def agg_peaks(wildcards):
     checkpoint_output = checkpoints.group_plasmids.get(**wildcards).output[0]
     print('starting glob')
@@ -174,14 +149,13 @@ def agg_peaks(wildcards):
     )
     return e
 
-    
 
 rule concat_by_file_num:
     input:
         agg_peaks
     output:
         'output/peakMerge/{flow_cell}.{file_num}.all.peaks.tsv'
-    shell:'../aggLabelPeaks.py'
+    script:'../scripts/aggLabelPeaks.py'
 
 
 rule concat_all:
@@ -192,7 +166,7 @@ rule concat_all:
         )
     output:
         'output/peakMerge/{flow_cell}.all.peaks.tsv'
-    shell:'../aggLabelPeaks.py'
+    script:'../scripts/aggLabelPeaks.py'
         
     
 
@@ -227,16 +201,19 @@ rule concat_all:
 #     script:'../aggLabelPeaks.py'
 
 
-# rule plot_footprints:
-#     conda:
-#         '../envs/jupyter.yml'
-#     input:
-#         barcode_plasmids='output/barcodePlasmidMerge/{flow_cell}.barcode.plasmid.ID.tsv',
-#         shifted_annos='output/mapping/shiftedGbTsv/shifted.gb.tsv',
-#         annotated_peaks='output/peakMerge/{flow_cell}.all.peaks.tsv'
-#     output:
-#         directory('output/plots/peaks/{flow_cell}/')
-#     script:'../scripts/test.py'
+rule plot_footprints:
+    conda:
+        '../envs/jupyter.yml'
+    input:
+        barcode_plasmids='output/barcodePlasmidMerge/{flow_cell}.barcode.plasmid.ID.tsv',
+        shifted_annos='output/mapping/shiftedGbTsv/shifted.gb.tsv',
+        annotated_peaks='output/peakMerge/{flow_cell}.all.peaks.tsv'
+    output:
+        directory('output/plots/peaks/{flow_cell}/')
+    resources:
+        time=420,
+        mem_mb=10000
+    notebook:'../notebook/test.py'
     
 
 
